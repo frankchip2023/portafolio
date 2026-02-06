@@ -191,11 +191,11 @@ Transform the initial local RAG prototype into a working web feature connected t
 
 ### Methodology
 1. Refactored the original CLI-only agent to support both CLI and API execution modes.
-2. Encapsulated RAG flow into a service layer for reuse.
-3. Added API routes for health checks, index connection, reindexing, and chat.
-4. Built a floating chatbot component in React and mounted it globally in the main layout.
-5. Connected frontend requests to backend responses with source references.
-6. Validated end-to-end flow with lint/build checks and runtime tests.
+2. Encapsulated the RAG pipeline into a reusable service layer (LLM + embeddings + retriever + prompt).
+3. Exposed a lightweight HTTP API with endpoints for health, connect, reindex, and chat.
+4. Implemented a floating chatbot UI in React and mounted it globally in the layout.
+5. Added a “Try Chatbot” call-to-action that opens the chat widget from project cards and detail pages.
+6. Hardened deployment behavior (fast port binding, CORS, and health checks) for production hosting.
 
 ### Feature Engineering
 - Text chunking using recursive splitting.
@@ -203,15 +203,17 @@ Transform the initial local RAG prototype into a working web feature connected t
 - Vector fields and policies configured for Azure Cosmos DB vector search.
 - Retrieval setup with top-k context injection into the prompt.
 
-### Models Compared
-- Gemini-based chat model for generation.
-- Retrieval chain variants using existing index vs. full reindex flow.
-- Frontend UX alternatives for message display and source visibility.
+### Deployment & MLOps
+- Containerized the backend with Docker for reproducible local testing and production builds.
+- Built and pushed images with Google Cloud Build and deployed the service on Google Cloud Run.
+- Configured runtime secrets and environment variables (Cosmos DB + Gemini) outside the codebase.
+- Connected the GitHub Pages frontend to the Cloud Run backend through a single API base URL.
+- Added SPA routing support for GitHub Pages (custom 404.html fallback).
 
-### Validation Strategy
-- API validation with health and chat calls.
-- Build-time validation with TypeScript and Vite production build.
-- Error handling checks for missing backend connection and missing index state.
+### Validation
+- Backend: /health checks, port binding verification, and request-level error handling.
+- Frontend: production builds with Vite and smoke tests across routes and chat actions.
+- Cross-origin testing: confirmed browser CORS behavior across GitHub Pages → Cloud Run.
 
 ### Results
 - Portfolio now includes a functional chatbot connected to the RAG agent.
@@ -224,11 +226,9 @@ Transform the initial local RAG prototype into a working web feature connected t
 - Improves recruiter and client engagement by showing deployed AI capability.
 
 ### Tech Stack
-- Python, Pandas, NumPy
-- LangChain, Gemini API, HuggingFace Embeddings
-- Azure Cosmos DB (Vector Search)
-- React, TypeScript, Tailwind CSS, Vite
-- HTTP API + chatbot UI integration
+- Frontend: React, TypeScript, Tailwind CSS, Vite, TanStack Router, GitHub Pages
+- Backend: Python, LangChain, Gemini API, HuggingFace Embeddings, Azure Cosmos DB (Vector Search)
+- DevOps: Docker, Google Cloud Build, Google Cloud Run, environment-based configuration
         `,tags:["Python","RAG","LangChain","Azure Cosmos DB","React Chatbot"],imageUrl:"https://images.unsplash.com/photo-1485827404703-89b55fcc595e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",githubUrl:"https://github.com/frankchip2023",codeTitle:"Code (GitHub)",kaggleUrl:"https://www.kaggle.com/frankchipana",datasetTitle:"Kaggle Profile",demoUrl:"#open-chat",demoTitle:"Try Chatbot"},{id:"ppe-detection",title:"PPE Detection (Computer Vision)",description:"Implemented a YOLO-based object detection model to identify Personal Protective Equipment (PPE) compliance in real-time video feeds, enhancing workplace safety.",longDescription:`
 ### Overview
 The objective of this project was to design and implement a Computer Vision model capable of detecting Personal Protective Equipment (PPE) in real-world working environments using YOLOv8 by Ultralytics.
