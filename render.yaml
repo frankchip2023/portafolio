@@ -6,7 +6,7 @@ services:
     buildCommand: |
       pip install -r requirements.txt
     startCommand: |
-      /bin/sh -c "python src/main.py --mode api --host 0.0.0.0 --port $PORT"
+      /bin/sh -c "python -u src/main.py --mode api --host 0.0.0.0 --port ${PORT:-10000}"
     envVars:
       - key: AZURE_COSMOS_DB_ENDPOINT
         sync: false
