@@ -1,121 +1,44 @@
-# React + TypeScript + Vite
+# Frank Chipana Portfolio (React + RAG Chatbot)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This repo contains:
 
-Currently, two official plugins are available:
+- A React + TypeScript portfolio website (deployed on GitHub Pages).
+- A Python RAG backend (deployed on Google Cloud Run) that powers the floating chatbot.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tech Stack
 
-## React Compiler
+- Frontend: Vite, React, TypeScript, Tailwind CSS, TanStack Router
+- Backend: Python, LangChain, HuggingFace Embeddings, Azure Cosmos DB (vector store), Gemini API
+- Deploy:
+  - Frontend: GitHub Pages (`gh-pages`)
+  - Backend: Google Cloud Run
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Project Structure
 
-## Expanding the ESLint configuration
+- `src/`: React app + Python backend (`src/main.py`)
+- `public/`: static files (includes `cv-frank-chipana.pdf` and `404.html` for GitHub Pages SPA fallback)
+- `render.yaml`: legacy Render config (not used if you deploy on GCP)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Frontend (Local Dev)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-## Chatbot + Agent Integration
-
-The portfolio now includes a floating chatbot in the UI that connects to the Python RAG agent in `src/main.py`.
-
-Run the API backend:
-
-```bash
-python src/main.py --mode api --host 127.0.0.1 --port 8000
-```
-
-Run the frontend:
-
-```bash
-npm run dev
-```
-
-Optional frontend API URL override (default is `http://127.0.0.1:8000`):
-
-```bash
-VITE_CHAT_API_URL=http://127.0.0.1:8000 npm run dev
-```
-
-Useful backend endpoints:
-
-- `GET /health`
-- `POST /connect` (use existing index)
-- `POST /reindex` (rebuild from PDFs in `DOCS_DIR`)
-- `POST /chat` with JSON `{ "message": "..." }`
-
-## Quick Start (Local)
-
-Install frontend dependencies:
+Install and run:
 
 ```bash
 npm install
-```
-
-Run frontend:
-
-```bash
 npm run dev
 ```
 
-Run backend (API mode, using local venv):
+Local dev API URL is configured in `/.env.local`:
+
+```env
+VITE_CHAT_API_URL=http://127.0.0.1:8080
+```
+
+## Backend (Local)
+
+### Option A: Run with venv (CLI or API)
+
+API mode:
 
 ```bash
 venv/bin/python src/main.py --mode api --host 127.0.0.1 --port 8000
@@ -127,19 +50,15 @@ Health check:
 curl http://127.0.0.1:8000/health
 ```
 
-## Local Backend With Docker (Recommended)
+### Option B (Recommended): Run Backend with Docker
 
-This is a production-like way to run the RAG API locally.
-
-1) Build the image:
+Build:
 
 ```bash
 docker build -t portfolio-rag .
 ```
 
-2) Create a Docker env file (do not commit secrets):
-
-Create `./.env.docker` (no quotes) with:
+Create `./.env.docker` (do not commit secrets):
 
 ```env
 AZURE_COSMOS_DB_ENDPOINT=https://...
@@ -151,82 +70,142 @@ GEMINI_MODEL=...
 CORS_ORIGINS=http://localhost:5173
 ```
 
-3) Run the container:
+Run:
 
 ```bash
 docker run --rm -p 8080:8080 --env-file ./.env.docker portfolio-rag
 ```
 
-4) Health check:
+Health check:
 
 ```bash
 curl http://127.0.0.1:8080/health
 ```
 
-5) Point the frontend to the Docker backend:
+## Backend API Endpoints
 
-```bash
-npm run dev
-```
-
-This repo includes a local dev override at `/.env.local`:
-
-```env
-VITE_CHAT_API_URL=http://127.0.0.1:8080
-```
+- `GET /health` (also works on `/`)
+- `POST /connect` (use existing Cosmos index)
+- `POST /reindex` (rebuild index from PDFs in `DOCS_DIR`)
+- `POST /chat` body: `{ "message": "..." }`
 
 ## Environment Variables
 
-Frontend (production):
+### Frontend
 
-- `VITE_CHAT_API_URL` = backend URL (e.g. Render URL)
+- `VITE_CHAT_API_URL` (backend base URL)
 
-Backend (Render or local):
+Production example (GitHub Pages):
+- `/.env.production` should point to your Cloud Run URL.
+
+### Backend
 
 - `AZURE_COSMOS_DB_ENDPOINT`
 - `AZURE_COSMOS_DB_KEY`
 - `COSMOS_DB_NAME`
 - `COSMOS_CONTAINER_NAME`
+- `EMBEDDING_MODEL_NAME` (default: `sentence-transformers/all-MiniLM-L6-v2`)
+- `EMBEDDING_DIM` (default: `384`)
 - `GEMINI_API_KEY`
 - `GEMINI_MODEL`
-- `DOCS_DIR` (defaults to `./src/documentos_subidos`)
-- `CORS_ORIGINS` (e.g. `https://frankchip2023.github.io/portfolio`)
+- `DOCS_DIR` (default: `./src/documentos_subidos`)
+- `CORS_ORIGINS` (example: `https://frankchip2023.github.io`)
 
-## Deploy: GitHub Pages (Frontend)
+## Deploy Frontend: GitHub Pages
 
 This repo is configured for GitHub Pages with Vite basepath `/portfolio/`.
 
-Deploy steps:
+Deploy:
 
 ```bash
 npm run build
 npm run deploy
 ```
 
-Make sure GitHub Pages uses the `gh-pages` branch (root folder).
+GitHub → Settings → Pages:
+- Branch: `gh-pages`
+- Folder: `/ (root)`
 
-## Deploy: Render (Backend)
+Notes:
+- After deploy, GitHub Pages may cache old assets. Use hard refresh: `Cmd + Shift + R`.
+- `public/404.html` is included to support SPA routing on GitHub Pages.
 
-`render.yaml` is included to deploy the RAG API.
+## Deploy Backend: Google Cloud Run (Step-by-Step)
 
-Key settings:
+Assumptions used below:
 
-- Build command: `pip install -r requirements.txt`
-- Start command:
-  ```
-  /bin/sh -c "python -u src/main.py --mode api --host 0.0.0.0 --port ${PORT:-10000}"
-  ```
+- `PROJECT_ID`: `portfolio-486616`
+- Region: `europe-west4`
+- Artifact Registry repo name: `portfolio` (Docker)
+- Image name: `porfolio`
 
-After deploy, set frontend env:
+### 1) Enable APIs
 
+```bash
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
 ```
-VITE_CHAT_API_URL=https://your-render-service.onrender.com
+
+### 2) Configure Docker auth
+
+```bash
+gcloud auth configure-docker europe-west4-docker.pkg.dev
 ```
 
-Then redeploy the frontend to GitHub Pages.
+### 3) Build + push image (Cloud Build)
+
+```bash
+gcloud builds submit --tag europe-west4-docker.pkg.dev/portfolio-486616/portfolio/porfolio:latest .
+```
+
+### 4) Deploy to Cloud Run
+
+```bash
+gcloud run deploy porfolio \
+  --image europe-west4-docker.pkg.dev/portfolio-486616/portfolio/porfolio:latest \
+  --platform managed \
+  --region europe-west4 \
+  --allow-unauthenticated \
+  --port 8080 \
+  --memory 2Gi \
+  --cpu 2 \
+  --max-instances 3
+```
+
+### 5) Set backend env vars in Cloud Run
+
+Cloud Run → Service → Edit & Deploy new revision → Environment variables:
+
+- Set all Azure + Gemini variables listed above.
+- Set `CORS_ORIGINS=https://frankchip2023.github.io`
+
+### 6) Connect frontend to Cloud Run
+
+Update `/.env.production`:
+
+```env
+VITE_CHAT_API_URL=https://YOUR_CLOUD_RUN_URL
+```
+
+Redeploy frontend:
+
+```bash
+npm run build
+npm run deploy
+```
+
+## Security Notes
+
+- Never commit API keys. Use `/.env.local`, `/.env.docker`, and Cloud Run environment variables.
+- If a key was ever committed or shared, rotate it immediately.
 
 ## Troubleshooting
 
-- **Blank page on GitHub Pages**: do a hard refresh (`Cmd + Shift + R`). GitHub Pages can cache old assets after a deploy.
-- **Chat “Failed to fetch”**: verify `VITE_CHAT_API_URL` and CORS on the backend.
-- **Python module not found**: run with `venv/bin/python` instead of system `python3`.
+- GitHub Pages shows a blank page:
+  - Hard refresh: `Cmd + Shift + R`
+  - Confirm Pages points to `gh-pages`
+- Chat shows `Failed to fetch`:
+  - Check `VITE_CHAT_API_URL` is correct
+  - Check `CORS_ORIGINS` includes `https://frankchip2023.github.io`
+- Gemini model error `NOT_FOUND`:
+  - Verify `GEMINI_MODEL` value (typos cause 404)
+
