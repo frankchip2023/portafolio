@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+    <script>
+      // GitHub Pages does not support SPA rewrites.
+      // Redirect unknown routes back to index.html with the original path encoded.
+      (function () {
+        var base = '/portfolio';
+        var fullPath = window.location.pathname + window.location.search + window.location.hash;
+        window.location.replace(base + '/?p=' + encodeURIComponent(fullPath));
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>
