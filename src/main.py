@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DOCS_DIR = os.getenv("DOCS_DIR", "./src/documentos_subidos")
+DOCS_DIR = os.getenv("DOCS_DIR", "./src/documentos_confidenciales")
 
 AZURE_COSMOS_DB_ENDPOINT = os.getenv("AZURE_COSMOS_DB_ENDPOINT", "")
 AZURE_COSMOS_DB_KEY = os.getenv("AZURE_COSMOS_DB_KEY", "")
@@ -298,25 +298,46 @@ rag_service = RAGService()
 
 
 class AgentRequestHandler(BaseHTTPRequestHandler):
-    cors_origins = os.getenv(
-        "CORS_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173",
-    )
+    cors_origins = [
+        origin.strip()
+        for origin in os.getenv(
+            "CORS_ORIGINS",
+            "http://localhost:5173,http://127.0.0.1:5173",
+        ).split(",")
+        if origin.strip()
+    ]
 
-    def _set_headers(self, status_code: int = 200):
+    def _get_allowed_origin(self) -> Optional[str]:
+        origin = self.headers.get("Origin")
+        if not origin:
+            return None
+        return origin if origin in self.cors_origins else None
+
+    def _set_headers(self, status_code: int = 200, allow_origin: Optional[str] = None):
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json")
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        if allow_origin:
+            self.send_header("Access-Control-Allow-Origin", allow_origin)
+            self.send_header("Vary", "Origin")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
 
-    def _write_json(self, payload: dict, status_code: int = 200):
-        self._set_headers(status_code)
+    def _write_json(
+        self,
+        payload: dict,
+        status_code: int = 200,
+        allow_origin: Optional[str] = None,
+    ):
+        self._set_headers(status_code, allow_origin=allow_origin)
         self.wfile.write(json.dumps(payload).encode("utf-8"))
 
     def do_OPTIONS(self):
-        self._set_headers(200)
+        allowed_origin = self._get_allowed_origin()
+        if not allowed_origin:
+            self._set_headers(403)
+            return
+        self._set_headers(200, allow_origin=allowed_origin)
 
     def do_HEAD(self):
         if self.path in ("/", "/health"):
@@ -325,21 +346,32 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
         self._set_headers(404)
 
     def do_GET(self):
+        allowed_origin = self._get_allowed_origin()
         if self.path in ("/", "/health"):
-            self._write_json({"status": "ok"})
+            self._write_json({"status": "ok"}, allow_origin=allowed_origin)
+            return
+        if self.headers.get("Origin") and not allowed_origin:
+            self._write_json({"detail": "Origin not allowed"}, status_code=403)
             return
         self._write_json({"detail": "Not found"}, status_code=404)
 
     def do_POST(self):
+        allowed_origin = self._get_allowed_origin()
+        if not allowed_origin:
+            self._write_json({"detail": "Origin not allowed"}, status_code=403)
+            return
         try:
             if self.path == "/connect":
                 rag_service.connect_existing_index()
-                self._write_json({"status": "connected"})
+                self._write_json({"status": "connected"}, allow_origin=allowed_origin)
                 return
 
             if self.path == "/reindex":
                 rag_service.reindex_documents()
-                self._write_json({"status": "reindexed", "docs_dir": DOCS_DIR})
+                self._write_json(
+                    {"status": "reindexed", "docs_dir": DOCS_DIR},
+                    allow_origin=allowed_origin,
+                )
                 return
 
             if self.path == "/chat":
@@ -355,12 +387,12 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
                     rag_service.connect_existing_index()
 
                 answer = rag_service.ask(message)
-                self._write_json(answer)
+                self._write_json(answer, allow_origin=allowed_origin)
                 return
 
             self._write_json({"detail": "Not found"}, status_code=404)
         except Exception as exc:
-            self._write_json({"detail": str(exc)}, status_code=500)
+            self._write_json({"detail": str(exc)}, status_code=500, allow_origin=allowed_origin)
 
 
 def run_api_server(host: str, port: int):
