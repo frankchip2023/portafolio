@@ -24,7 +24,7 @@ import segmentationProfilingSecond from '../assets/images/segmentation_profiling
 import segmentationCardImage from '../assets/images/segmentation_card.png';
 import ppeOverview from '../assets/images/ppe_overview.png';
 import ppeMain from '../assets/images/ppe_main.jpg';
-import ragProjectScheme from '../../diagram.png';
+import ragProjectScheme from '../assets/images/rag_project_scheme.png';
 
 export interface Project {
     id: string;
