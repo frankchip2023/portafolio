@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from '@tanstack/react-router';
 import { Mail, MapPin, Phone, Download, Briefcase, Clock3 } from 'lucide-react';
 
 const Contact: React.FC = () => {
@@ -93,14 +94,13 @@ const Contact: React.FC = () => {
                                 <Mail size={16} />
                                 Send Email
                             </a>
-                            <a
-                                href={`${import.meta.env.BASE_URL}cv-frank-chipana.pdf`}
-                                download
+                            <Link
+                                to="/cv"
                                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-white px-4 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 transition-colors"
                             >
                                 <Download size={16} />
-                                Download CV
-                            </a>
+                                View CV
+                            </Link>
                         </div>
                     </div>
                 </div>

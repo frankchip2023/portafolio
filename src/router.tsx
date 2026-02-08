@@ -2,6 +2,7 @@ import { Outlet, createRootRoute, createRoute, createRouter } from '@tanstack/re
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import ProjectDetail from './pages/ProjectDetail';
+import CV from './pages/CV';
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -23,7 +24,13 @@ const projectRoute = createRoute({
   component: ProjectDetail,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, projectRoute]);
+const cvRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/cv',
+  component: CV,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute, projectRoute, cvRoute]);
 
 export const router = createRouter({
   routeTree,

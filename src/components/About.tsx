@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from '@tanstack/react-router';
 import { BookOpen, Code, Database, GraduationCap, Award, ExternalLink, Download } from 'lucide-react';
 import profileImage from '../assets/images/profile.jpg';
 
@@ -23,14 +24,13 @@ const About: React.FC = () => {
                                     className="w-full h-full object-cover"
                                 />
                             </div>
-                            <a
-                                href={`${import.meta.env.BASE_URL}cv-frank-chipana.pdf`}
-                                download
+                            <Link
+                                to="/cv"
                                 className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-blue-700"
                             >
                                 <Download size={16} />
-                                Download CV (PDF)
-                            </a>
+                                View CV (PDF)
+                            </Link>
                         </div>
                     </div>
 
